@@ -38,13 +38,13 @@ jobs:
     - name: Determine tags to run
       run: |
         TAGS=""
-        if ${{ inputs.example1 }}; then
+        if [ "${{ inputs.example1 }}" = "true" ]; then
           TAGS="${TAGS}@Example1|"
         fi
-        if ${{ inputs.example2 }}; then
+        if [ "${{ inputs.example2 }}" = "true" ]; then
           TAGS="${TAGS}@Example2|"
         fi
-        if [ ! -z "$TAGS" ]; then
+        if [ -n "$TAGS" ]; then
           TAGS="${TAGS::-1}"
         fi
         echo "TEST_TAGS=$TAGS" >> $GITHUB_ENV
