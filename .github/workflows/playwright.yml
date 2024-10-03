@@ -55,7 +55,7 @@ jobs:
 
     - name: Run Playwright tests
       run: |
-        if [ -z "${{ env.TEST_TAGS }}" ]; then
+        if [ -z "${{ env.TEST_TAGS }}" = "true" ]; then
           npx playwright test
         else
           npx playwright test --grep "${{ env.TEST_TAGS }}"
