@@ -59,7 +59,7 @@ jobs:
           npx playwright test
         else
           npx playwright test --grep "${{ env.TEST_TAGS }}"
-
+        fi
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
