@@ -1,0 +1,68 @@
+name: Playwright Tests
+on:
+  workflow_dispatch:
+    inputs:
+      example1:
+        description: 'Run Example1'
+        required: false
+        type: boolean
+        default: false
+
+      example2:
+        description: 'Run Example2'
+        required: false
+        type: boolean
+        default: false
+
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test:
+    timeout-minutes: 10
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+
+    - name: Determine tags to run
+      run: |
+        TAGS=""
+        if ${{ inputs.example1 }}; then
+          TAGS="${TAGS}@Example1|"
+        fi
+        if ${{ inputs.example2 }}; then
+          TAGS="${TAGS}@Example2|"
+        fi
+        if [ ! -z "$TAGS" ]; then
+          TAGS="${TAGS::-1}"
+        fi
+        echo "TEST_TAGS=$TAGS" >> $GITHUB_ENV
+
+    - name: Log the inputs
+      run: |
+        echo "TAGS: ${{ env.TEST_TAGS }}"
+
+    - name: Run Playwright tests
+      run: |
+        if [ -z "${{ env.TEST_TAGS }}" ]; then
+          npx playwright test
+        else
+          npx playwright test --grep "${{ env.TEST_TAGS }}"
+
+    - uses: actions/upload-artifact@v4
+      if: ${{ !cancelled() }}
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 10
