@@ -2,14 +2,14 @@ name: Playwright Tests
 on:
   workflow_dispatch:
     inputs:
-      example1:
-        description: 'Run Example1'
+      newBrowserTabTest:
+        description: 'New Browser Tab Test'
         required: false
         type: boolean
         default: false
 
-      example2:
-        description: 'Run Example2'
+      openNewSeparateWindow:
+        description: 'Open New Separate Window Test'
         required: false
         type: boolean
         default: false
@@ -38,11 +38,11 @@ jobs:
     - name: Determine tags to run
       run: |
         TAGS=""
-        if [ "${{ inputs.example1 }}" = "true" ]; then
-          TAGS="${TAGS}@Example1|"
+        if [ "${{ inputs.newBrowserTabTest }}" = "true" ]; then
+          TAGS="${TAGS}@NewBrowserTab|"
         fi
-        if [ "${{ inputs.example2 }}" = "true" ]; then
-          TAGS="${TAGS}@Example2|"
+        if [ "${{ inputs.openNewSeparateWindow }}" = "true" ]; then
+          TAGS="${TAGS}@OpenNewSeparateWindow|"
         fi
         if [ -n "$TAGS" ]; then
           TAGS="${TAGS::-1}"
