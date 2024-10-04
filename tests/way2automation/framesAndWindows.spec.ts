@@ -1,9 +1,13 @@
 import { test, expect } from '@playwright/test';
 
-test.describe('New window and iframe testing on way2automation', () => {
+test.describe('Window and Frame testing on Way2automation', () => {
 
     test.beforeEach(async ({ page }) => {
         await page.goto('https://www.way2automation.com/way2auto_jquery/frames-and-windows.php#load_box');
+    });
+
+    test.afterEach(async ({ context }) => {
+        await context.close();
     });
 
     test('Open new browser tab through an iframe', { tag: '@NewBrowserTab'}, async ({ page, context }) => {
@@ -28,6 +32,10 @@ test.describe('New window and iframe testing on way2automation', () => {
 
         const newPage = allPages[allPages.length - 1];
         await newPage.waitForLoadState();
+
+        const initialPageInternalDimension = await page.evaluate(() => [window.innerWidth, window.innerHeight]);
+        const newPageInternalDimension = await newPage.evaluate(() => [window.innerWidth, window.innerHeight]);
+        expect(initialPageInternalDimension).not.toEqual(newPageInternalDimension);
         expect(await newPage.locator('.farme_window').innerText()).toEqual('Open New Seprate Window');
     });
 });
