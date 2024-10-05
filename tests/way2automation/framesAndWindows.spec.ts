@@ -1,46 +1,52 @@
 import { test, expect, type Locator } from '@playwright/test';
+import { FramesAndWindowsPage } from '../../pom/way2automation/framesAndWindowsPage.spec';
 
 test.describe('Window and Frame testing on Way2automation', () => {
+    let framesAndWindowsPage: FramesAndWindowsPage;
 
     test.beforeEach(async ({ page }) => {
-        await page.goto('https://www.way2automation.com/way2auto_jquery/frames-and-windows.php#load_box');
+        framesAndWindowsPage = new FramesAndWindowsPage(page);
+        await framesAndWindowsPage.goTo();
     });
 
     test.afterEach(async ({ context }) => {
         await context.close();
     });
 
-    test('Open new browser tab through an iframe', { tag: '@NewBrowserTab'}, async ({ page, context }) => {
-        await page.frameLocator('#example-1-tab-1 iframe').getByText('New Browser Tab').click();
+    test('Open new browser tab through an iframe', { tag: '@NewBrowserTab'}, async ({ context }) => {
+        const hyperlink = framesAndWindowsPage.newWindowFrameTextLink();
+        expect(await hyperlink.innerText()).toEqual(framesAndWindowsPage.newWindowExpectedText);
+
+        await hyperlink.click();
         await context.waitForEvent('page');
 
-        const allPages = context.pages();
-        expect(allPages.length).toEqual(2);
-
-        const newPage = allPages[allPages.length - 1];
-        await newPage.waitForLoadState();
-
-        const initialPageInternalDimension = await page.evaluate(() => [window.innerWidth, window.innerHeight]);
-        const newPageInternalDimension = await newPage.evaluate(() => [window.innerWidth, window.innerHeight]);
-        expect(initialPageInternalDimension).toEqual(newPageInternalDimension);
-        expect(await newPage.locator('.farme_window').innerText()).toEqual('New Browser Tab');
+        const newPage = await framesAndWindowsPage.evaluateNewTab(context);
+        const newPageHyperlinkText = await framesAndWindowsPage.newPageHyperlink(newPage).innerText();
+        expect(newPageHyperlinkText).toEqual(framesAndWindowsPage.newWindowExpectedText);
     });
 
-    test('Open new separate window through an iframe', { tag: '@OpenNewSeparateWindow'}, async ({ page, context }) => {
-        await page.locator('.responsive-tabs').getByText("Open Seprate New Window").click();
-        await page.frameLocator('#example-1-tab-2 iframe').getByText('Open New Seprate Window').click();
-        await waitForValue(() => context.pages().length, 2)
+    test('Open new separate window through an iframe', { tag: '@OpenNewSeparateWindow'}, async ({ context }) => {
+        await framesAndWindowsPage.separateNewWindowResponsiveTab().click();
+        const hyperlink = framesAndWindowsPage.separateNewWindowFrameTextLink();
+        expect(await hyperlink.innerText()).toEqual(framesAndWindowsPage.separateNewWindowExpectedText);
 
-        const allPages = context.pages();
-        expect(allPages.length).toEqual(2);
+        await hyperlink.click();
+        await waitForNumber(() => context.pages().length, 2)
 
-        const newPage = allPages[allPages.length - 1];
-        await newPage.waitForLoadState();
+        const newPage = await framesAndWindowsPage.evaluateNewWindow(context);
+        const newPageHyperlinkText = await framesAndWindowsPage.newPageHyperlink(newPage).innerText();
+        expect(newPageHyperlinkText).toEqual(framesAndWindowsPage.separateNewWindowExpectedText);
+    });
 
-        const initialPageInternalDimension = await page.evaluate(() => [window.innerWidth, window.innerHeight]);
-        const newPageInternalDimension = await newPage.evaluate(() => [window.innerWidth, window.innerHeight]);
-        expect(initialPageInternalDimension).not.toEqual(newPageInternalDimension);
-        expect(await newPage.locator('.farme_window').innerText()).toEqual('Open New Seprate Window');
+    test('Open multiple windows through an iframe', { tag: '@OpenMultipleWindows'}, async ({ context }) => {
+        await framesAndWindowsPage.multipleWindowsResponsiveTab().click();
+        const hyperlink = framesAndWindowsPage.multipleWindowsFrameTextLink();
+        expect(await hyperlink.innerText()).toEqual(framesAndWindowsPage.multipleWindowsExpectedFrameText);
+
+        await hyperlink.click();
+        await waitForNumber(() => context.pages().length, 4)
+
+        await framesAndWindowsPage.evaluateMultipleNewWindows(context);
     });
 
     test('Open new frameset tab through an iframe', { tag: '@OpenFramesetWindow'}, async ({ page, context }) => {
@@ -102,27 +108,9 @@ test.describe('Window and Frame testing on Way2automation', () => {
             expect(bodyCSS.backgroundColor).toEqual('rgb(102, 153, 102)')
         }
     });
-
-    test('Open multiple windows through an iframe', { tag: '@OpenMultipleWindows'}, async ({ page, context }) => {
-        await page.locator('.responsive-tabs').getByText("Open Multiple Windows").click();
-        await page.frameLocator('#example-1-tab-4 iframe').getByText('Open multiple pages').click();
-        await waitForValue(() => context.pages().length, 4)
-
-        const allPages = context.pages();
-        expect(allPages.length).toEqual(4);
-        allPages.shift();
-        const valuesToCheck = ['Open Window-1', 'Open Window-2', 'Open Window-3'];
-
-        for (const page of allPages){
-            await page.waitForLoadState();
-            const textContent = await page.locator('.farme_window').innerText();
-            const containsValue = valuesToCheck.some(value => textContent.includes(value));
-            expect(containsValue).toBeTruthy();
-        }
-    });
 });
 
-async function waitForValue(getValue: () => number, target: number): Promise<void> {
+async function waitForNumber(getValue: () => number, target: number): Promise<void> {
     while (getValue() !== target) {
         await new Promise(resolve => setTimeout(resolve, 100));
     }
