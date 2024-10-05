@@ -20,6 +20,12 @@ on:
         type: boolean
         default: false
 
+      openMultipleWindows:
+        description: 'Open Multiple Windows Test'
+        required: false
+        type: boolean
+        default: false
+
   push:
     branches: [ main, master ]
   pull_request:
@@ -52,6 +58,9 @@ jobs:
         fi
         if [ "${{ inputs.openFramesetWindow }}" = "true" ]; then
           TAGS="${TAGS}@OpenFramesetWindow|"
+        fi
+        if [ "${{ inputs.openMultipleWindows }}" = "true" ]; then
+          TAGS="${TAGS}@OpenMultipleWindows|"
         fi
         if [ -n "$TAGS" ]; then
           TAGS="${TAGS::-1}"

@@ -102,6 +102,24 @@ test.describe('Window and Frame testing on Way2automation', () => {
             expect(bodyCSS.backgroundColor).toEqual('rgb(102, 153, 102)')
         }
     });
+
+    test('Open multiple windows through an iframe', { tag: '@OpenMultipleWindows'}, async ({ page, context }) => {
+        await page.locator('.responsive-tabs').getByText("Open Multiple Windows").click();
+        await page.frameLocator('#example-1-tab-4 iframe').getByText('Open multiple pages').click();
+        await waitForValue(() => context.pages().length, 4)
+
+        const allPages = context.pages();
+        expect(allPages.length).toEqual(4);
+        allPages.shift();
+        const valuesToCheck = ['Open Window-1', 'Open Window-2', 'Open Window-3'];
+
+        for (const page of allPages){
+            await page.waitForLoadState();
+            const textContent = await page.locator('.farme_window').innerText();
+            const containsValue = valuesToCheck.some(value => textContent.includes(value));
+            expect(containsValue).toBeTruthy();
+        }
+    });
 });
 
 async function waitForValue(getValue: () => number, target: number): Promise<void> {
