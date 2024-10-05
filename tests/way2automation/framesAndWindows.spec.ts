@@ -1,12 +1,16 @@
 import { test, expect, type Locator } from '@playwright/test';
-import { FramesAndWindowsPage } from '../../pom/way2automation/framesAndWindowsPage.spec';
+import { FramesAndWindowsLocators } from '../../pom/way2automation/framesAndWindowsLocators';
+import { FramesAndWindowsActions } from '../../pom/way2automation/framesAndWindowsActions';
+import { expectedValues } from '../../pom/way2automation/framesAndWindowsExpectedValues';
 
 test.describe('Window and Frame testing on Way2automation', () => {
-    let framesAndWindowsPage: FramesAndWindowsPage;
+    let framesAndWindowsLocators: FramesAndWindowsLocators;
+    let framesAndWindowsActions: FramesAndWindowsActions;
 
     test.beforeEach(async ({ page }) => {
-        framesAndWindowsPage = new FramesAndWindowsPage(page);
-        await framesAndWindowsPage.goTo();
+        framesAndWindowsLocators = new FramesAndWindowsLocators(page);
+        framesAndWindowsActions = new FramesAndWindowsActions(framesAndWindowsLocators);
+        await framesAndWindowsActions.goTo();
     });
 
     test.afterEach(async ({ context }) => {
@@ -14,39 +18,39 @@ test.describe('Window and Frame testing on Way2automation', () => {
     });
 
     test('Open new browser tab through an iframe', { tag: '@NewBrowserTab'}, async ({ context }) => {
-        const hyperlink = framesAndWindowsPage.newWindowFrameTextLink();
-        expect(await hyperlink.innerText()).toEqual(framesAndWindowsPage.newWindowExpectedText);
+        const hyperlink = framesAndWindowsLocators.newWindowFrameTextLink();
+        expect(await hyperlink.innerText()).toEqual(expectedValues.newWindowExpectedText);
 
         await hyperlink.click();
         await context.waitForEvent('page');
 
-        const newPage = await framesAndWindowsPage.evaluateNewTab(context);
-        const newPageHyperlinkText = await framesAndWindowsPage.newPageHyperlink(newPage).innerText();
-        expect(newPageHyperlinkText).toEqual(framesAndWindowsPage.newWindowExpectedText);
+        const newPage = await framesAndWindowsActions.evaluateNewTab(context);
+        const newPageHyperlinkText = await framesAndWindowsLocators.newPageHyperlink(newPage).innerText();
+        expect(newPageHyperlinkText).toEqual(expectedValues.newWindowExpectedText);
     });
 
     test('Open new separate window through an iframe', { tag: '@OpenNewSeparateWindow'}, async ({ context }) => {
-        await framesAndWindowsPage.separateNewWindowResponsiveTab().click();
-        const hyperlink = framesAndWindowsPage.separateNewWindowFrameTextLink();
-        expect(await hyperlink.innerText()).toEqual(framesAndWindowsPage.separateNewWindowExpectedText);
+        await framesAndWindowsLocators.separateNewWindowResponsiveTab().click();
+        const hyperlink = framesAndWindowsLocators.separateNewWindowFrameTextLink();
+        expect(await hyperlink.innerText()).toEqual(expectedValues.separateNewWindowExpectedText);
 
         await hyperlink.click();
         await waitForNumber(() => context.pages().length, 2)
 
-        const newPage = await framesAndWindowsPage.evaluateNewWindow(context);
-        const newPageHyperlinkText = await framesAndWindowsPage.newPageHyperlink(newPage).innerText();
-        expect(newPageHyperlinkText).toEqual(framesAndWindowsPage.separateNewWindowExpectedText);
+        const newPage = await framesAndWindowsActions.evaluateNewWindow(context);
+        const newPageHyperlinkText = await framesAndWindowsLocators.newPageHyperlink(newPage).innerText();
+        expect(newPageHyperlinkText).toEqual(expectedValues.separateNewWindowExpectedText);
     });
 
     test('Open multiple windows through an iframe', { tag: '@OpenMultipleWindows'}, async ({ context }) => {
-        await framesAndWindowsPage.multipleWindowsResponsiveTab().click();
-        const hyperlink = framesAndWindowsPage.multipleWindowsFrameTextLink();
-        expect(await hyperlink.innerText()).toEqual(framesAndWindowsPage.multipleWindowsExpectedFrameText);
+        await framesAndWindowsLocators.multipleWindowsResponsiveTab().click();
+        const hyperlink = framesAndWindowsLocators.multipleWindowsFrameTextLink();
+        expect(await hyperlink.innerText()).toEqual(expectedValues.multipleWindowsExpectedFrameText);
 
         await hyperlink.click();
         await waitForNumber(() => context.pages().length, 4)
 
-        await framesAndWindowsPage.evaluateMultipleNewWindows(context);
+        await framesAndWindowsActions.evaluateMultipleNewWindows(context);
     });
 
     test('Open new frameset tab through an iframe', { tag: '@OpenFramesetWindow'}, async ({ page, context }) => {
