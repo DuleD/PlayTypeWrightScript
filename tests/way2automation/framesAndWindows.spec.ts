@@ -1,16 +1,25 @@
 import { test, expect, type Locator } from '@playwright/test';
-import { FramesAndWindowsLocators } from '../../pom/way2automation/framesAndWindowsLocators';
-import { FramesAndWindowsActions } from '../../pom/way2automation/framesAndWindowsActions';
-import { expectedValues } from '../../pom/way2automation/framesAndWindowsExpectedValues';
+import { Locators as InitialPageLocators } from '../../pom/way2automation/framesAndWindowsPage/locators';
+import { Actions as InitialPageActions } from '../../pom/way2automation/framesAndWindowsPage/actions';
+import { expectedValues as InitialPageExpectedValues} from '../../pom/way2automation/framesAndWindowsPage/expectedValues';
+import { Locators as NewPageLocators } from '../../pom/way2automation/newFramePopupPage/locators';
+import { Actions as NewPageActions } from '../../pom/way2automation/newFramePopupPage/actions';
+import { expectedValues as newPageExpectedValues} from '../../pom/way2automation/newFramePopupPage/expectedValues';
 
 test.describe('Window and Frame testing on Way2automation', () => {
-    let framesAndWindowsLocators: FramesAndWindowsLocators;
-    let framesAndWindowsActions: FramesAndWindowsActions;
+    let initialPageLocators: InitialPageLocators;
+    let initialPageActions: InitialPageActions;
+
+    let newPageLocators: NewPageLocators;
+    let newPageActions: NewPageActions;
 
     test.beforeEach(async ({ page }) => {
-        framesAndWindowsLocators = new FramesAndWindowsLocators(page);
-        framesAndWindowsActions = new FramesAndWindowsActions(framesAndWindowsLocators);
-        await framesAndWindowsActions.goTo();
+        initialPageLocators = new InitialPageLocators(page);
+        initialPageActions = new InitialPageActions(initialPageLocators);
+
+        newPageLocators = new NewPageLocators();
+        newPageActions = new NewPageActions(newPageLocators);
+        await initialPageActions.goTo();
     });
 
     test.afterEach(async ({ context }) => {
@@ -18,76 +27,51 @@ test.describe('Window and Frame testing on Way2automation', () => {
     });
 
     test('Open new browser tab through an iframe', { tag: '@NewBrowserTab'}, async ({ context }) => {
-        const hyperlink = framesAndWindowsLocators.newWindowFrameTextLink();
-        expect(await hyperlink.innerText()).toEqual(expectedValues.newWindowText);
+        const hyperlink = initialPageLocators.newWindowFrameTextLink();
+        expect(await hyperlink.innerText()).toEqual(InitialPageExpectedValues.newWindowText);
 
         await hyperlink.click();
         await context.waitForEvent('page');
 
-        const newPage = await framesAndWindowsActions.evaluateNewTab(context);
-        const newPageHyperlinkText = await framesAndWindowsLocators.newPageHyperlink(newPage).innerText();
-        expect(newPageHyperlinkText).toEqual(expectedValues.newWindowText);
+        const newPage = await newPageActions.evaluateNewTab(context);
+        const newPageHyperlinkText = await newPageLocators.newPageHyperlink(newPage).innerText();
+        expect(newPageHyperlinkText).toEqual(newPageExpectedValues.newWindowText);
     });
 
     test('Open new separate window through an iframe', { tag: '@OpenNewSeparateWindow'}, async ({ context }) => {
-        await framesAndWindowsLocators.separateNewWindowResponsiveTab().click();
-        const hyperlink = framesAndWindowsLocators.separateNewWindowFrameTextLink();
-        expect(await hyperlink.innerText()).toEqual(expectedValues.separateNewWindowText);
+        await initialPageLocators.separateNewWindowResponsiveTab().click();
+        const hyperlink = initialPageLocators.separateNewWindowFrameTextLink();
+        expect(await hyperlink.innerText()).toEqual(InitialPageExpectedValues.separateNewWindowText);
 
         await hyperlink.click();
         await waitForNumber(() => context.pages().length, 2)
 
-        const newPage = await framesAndWindowsActions.evaluateNewWindow(context);
-        const newPageHyperlinkText = await framesAndWindowsLocators.newPageHyperlink(newPage).innerText();
-        expect(newPageHyperlinkText).toEqual(expectedValues.separateNewWindowText);
+        const newPage = await newPageActions.evaluateNewWindow(context);
+        const newPageHyperlinkText = await newPageLocators.newPageHyperlink(newPage).innerText();
+        expect(newPageHyperlinkText).toEqual(newPageExpectedValues.separateNewWindowText);
     });
 
     test('Open multiple windows through an iframe', { tag: '@OpenMultipleWindows'}, async ({ context }) => {
-        await framesAndWindowsLocators.multipleWindowsResponsiveTab().click();
-        const hyperlink = framesAndWindowsLocators.multipleWindowsFrameTextLink();
-        expect(await hyperlink.innerText()).toEqual(expectedValues.multipleWindowsFrameText);
+        await initialPageLocators.multipleWindowsResponsiveTab().click();
+        const hyperlink = initialPageLocators.multipleWindowsFrameTextLink();
+        expect(await hyperlink.innerText()).toEqual(InitialPageExpectedValues.multipleWindowsFrameText);
 
         await hyperlink.click();
         await waitForNumber(() => context.pages().length, 4)
 
-        await framesAndWindowsActions.evaluateMultipleNewWindows(context);
+        await newPageActions.evaluateMultipleNewWindows(context);
     });
 
     test('Open new frameset tab through an iframe', { tag: '@OpenFramesetWindow'}, async ({ context }) => {
-        await framesAndWindowsLocators.framesetWindowResponsiveTab().click();
-        const hyperlink = framesAndWindowsLocators.framesetWindowFrameTextLink();
-        expect(await hyperlink.innerText()).toEqual(expectedValues.framesetWindowText);
+        await initialPageLocators.framesetWindowResponsiveTab().click();
+        const hyperlink = initialPageLocators.framesetWindowFrameTextLink();
+        expect(await hyperlink.innerText()).toEqual(InitialPageExpectedValues.framesetWindowText);
 
         await hyperlink.click();
         await context.waitForEvent('page');
 
-        const newPage = await framesAndWindowsActions.evaluateNewTab(context);
-
-        const topFrameHeading = await framesAndWindowsLocators.newFramesetTabTopFrameHeading(newPage).innerText();
-        const topFrameParagraph = await framesAndWindowsLocators.newFramesetTabContentFrameParagraph(newPage).innerText();
-        expect(topFrameHeading).toEqual(expectedValues.newFramesetTabHeadingText);
-        expect(topFrameParagraph).toEqual(expectedValues.newFramesetTabParagraphText);
-        expect(framesAndWindowsLocators.newFramesetTabTopFrameHeading(newPage)).toHaveCSS('color', 'rgb(255, 255, 255)');
-        expect(framesAndWindowsLocators.newFramesetTabTopFrameHeading(newPage)).toHaveCSS('text-shadow', 'rgb(255, 255, 255) 0px 0px 5px');
-        expect(framesAndWindowsLocators.newFramesetTabContentFrameParagraph(newPage)).toHaveCSS('color', 'rgb(255, 255, 255)');
-        expect(framesAndWindowsLocators.newFramesetTabTopFrameBody(newPage)).toHaveCSS('background-color', 'rgb(151, 163, 193)');
-
-        const contentFrameHeading = await framesAndWindowsLocators.newFramesetTabContentFrameHeading(newPage).innerText();
-        const contentFrameParagraph = await framesAndWindowsLocators.newFramesetTabContentFrameParagraph(newPage).innerText();
-        expect(contentFrameHeading).toEqual(expectedValues.newFramesetTabHeadingText);
-        expect(contentFrameParagraph).toEqual(expectedValues.newFramesetTabParagraphText);
-
-        if (context.browser().browserType().name() === 'chromium'){
-            const headingCSS = await getElementCSS(framesAndWindowsLocators.newFramesetTabContentFrameHeading(newPage));
-            expect(headingCSS.color).toEqual('rgb(255, 255, 255)');
-            expect(headingCSS.textShadow).toEqual('rgb(255, 255, 255) 0px 0px 5px');
-
-            const paragraphCSS = await getElementCSS(framesAndWindowsLocators.newFramesetTabContentFrameParagraph(newPage));
-            expect(paragraphCSS.color).toEqual('rgb(255, 255, 255)');
-
-            const bodyCSS = await getElementCSS(framesAndWindowsLocators.newFramesetTabContentFrameBody(newPage));
-            expect(bodyCSS.backgroundColor).toEqual('rgb(102, 153, 102)')
-        }
+        const newPage = await newPageActions.evaluateNewTab(context);
+        await newPageActions.evaluateNewFramesetWindow(newPage);
 
         // const result: { [selector: string]: { [property: string]: string } } = {};
         // const cssString = await newPage.frameLocator('frame[name="contentFrame"]').locator('html head style').innerText();
@@ -115,6 +99,6 @@ async function waitForNumber(getValue: () => number, target: number): Promise<vo
     }
 }
 
-async function getElementCSS(locator: Locator) : Promise<CSSStyleDeclaration> {
+export async function getElementCSS(locator: Locator) : Promise<CSSStyleDeclaration> {
     return locator.evaluate((element) => window.getComputedStyle(element));
 }
