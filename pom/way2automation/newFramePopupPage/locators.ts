@@ -1,10 +1,6 @@
 import { type Page } from '@playwright/test';
 
 export class Locators{
-    // readonly page: Page;
-    // constructor(page: Page) {
-    //     this.page = page;
-    // }
 
     //New Tabs
     newPageBody(page: Page){

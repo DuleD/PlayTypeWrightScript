@@ -1,72 +1,59 @@
 import { expect, type BrowserContext, type Page} from '@playwright/test';
 import { Locators } from './locators';
 import { expectedValues } from './expectedValues';
-import { getElementCSS } from '../../../tests/way2automation/framesAndWindows.spec';
+import { getElementCSS } from '../../../utils/helpers';
+import * as newTabOrWindowChecks from '../../../utils/newTabOrWindowChecks'
 
 export class Actions{
-    readonly newFramePopupPage: Locators;
-    constructor(newFramePopupPage: Locators) {
-        this.newFramePopupPage = newFramePopupPage;
-    }
+    readonly newFramePopupLocators: Locators = new Locators();
     async evaluateNewTab(context: BrowserContext){
-        const allPages = context.pages();
-        expect(allPages.length).toEqual(2);
-        const newPage = allPages[1];
-        await newPage.waitForLoadState();
-
-        const initialPageInternalDimension = await allPages[0].evaluate(() => [window.innerWidth, window.innerHeight]);
-        const newPageInternalDimension = await newPage.evaluate(() => [window.innerWidth, window.innerHeight]);
-        expect(initialPageInternalDimension).toEqual(newPageInternalDimension);
-        return newPage;
+        const newPage = await newTabOrWindowChecks.newTabCheck(context);
+        const newPageHyperlinkText = await this.newFramePopupLocators.newPageHyperlink(newPage).innerText();
+        expect.soft(newPageHyperlinkText).toEqual(expectedValues.newWindowText);
     }
-    async evaluateNewWindow(context: BrowserContext){
-        const allPages = context.pages();
-        expect(allPages.length).toEqual(2);
-        const newPage = allPages[1];
-        await newPage.waitForLoadState();
-
-        const initialPageInternalDimension = await allPages[0].evaluate(() => [window.innerWidth, window.innerHeight]);
-        const newPageInternalDimension = await newPage.evaluate(() => [window.innerWidth, window.innerHeight]);
-        expect(initialPageInternalDimension).not.toEqual(newPageInternalDimension);
-        return newPage;
+    async evaluateNewSeparateWindow(context: BrowserContext){
+        const newPage = await newTabOrWindowChecks.newWindowCheck(context);
+        const newPageHyperlinkText = await this.newFramePopupLocators.newPageHyperlink(newPage).innerText();
+        expect.soft(newPageHyperlinkText).toEqual(expectedValues.separateNewWindowText);
     }
-    async evaluateMultipleNewWindows(context: BrowserContext){
+    async evaluateNewMultipleWindows(context: BrowserContext){
+        await newTabOrWindowChecks.multipleNewWindowsCheck(context, expectedValues.multipleWindowsValues.length);
         const allPages = context.pages();
-        expect(allPages.length).toEqual(4);
         allPages.shift();
 
         for (const page of allPages){
             await page.waitForLoadState();
-            const textContent = await this.newFramePopupPage.newPageHyperlink(page).innerText();
+            const textContent = await this.newFramePopupLocators.newPageHyperlink(page).innerText();
             const containsValue = expectedValues.multipleWindowsValues.some(value => textContent.includes(value));
-            expect(containsValue).toBeTruthy();
+            expect.soft(containsValue).toBeTruthy();
         }
     }
-    async evaluateNewFramesetWindow(page: Page){
-        const topFrameHeading = await this.newFramePopupPage.newFramesetTabTopFrameHeading(page).innerText();
-        const topFrameParagraph = await this.newFramePopupPage.newFramesetTabContentFrameParagraph(page).innerText();
-        expect(topFrameHeading).toEqual(expectedValues.newFramesetTopFrameHeadingText);
-        expect(topFrameParagraph).toEqual(expectedValues.newFramesetTopFrameParagraphText);
-        expect(this.newFramePopupPage.newFramesetTabTopFrameHeading(page)).toHaveCSS('color', expectedValues.newFramesetTopFrameHeadingColor);
-        expect(this.newFramePopupPage.newFramesetTabTopFrameHeading(page)).toHaveCSS('text-shadow', expectedValues.newFramesetTopFrameHeadingShadow);
-        expect(this.newFramePopupPage.newFramesetTabTopFrameParagraph(page)).toHaveCSS('color', expectedValues.newFramesetTopFrameParagraphColor);
-        expect(this.newFramePopupPage.newFramesetTabTopFrameBody(page)).toHaveCSS('background-color', expectedValues.newFramesetTopFrameBodyColor);
+    async evaluateNewFramesetWindow(context: BrowserContext){
+        const page = await newTabOrWindowChecks.newTabCheck(context);
+        const topFrameHeading = await this.newFramePopupLocators.newFramesetTabTopFrameHeading(page).innerText();
+        const topFrameParagraph = await this.newFramePopupLocators.newFramesetTabContentFrameParagraph(page).innerText();
+        expect.soft(topFrameHeading).toEqual(expectedValues.newFramesetTopFrameHeadingText);
+        expect.soft(topFrameParagraph).toEqual(expectedValues.newFramesetTopFrameParagraphText);
+        expect.soft(this.newFramePopupLocators.newFramesetTabTopFrameHeading(page)).toHaveCSS('color', expectedValues.newFramesetTopFrameHeadingColor);
+        expect.soft(this.newFramePopupLocators.newFramesetTabTopFrameHeading(page)).toHaveCSS('text-shadow', expectedValues.newFramesetTopFrameHeadingShadow);
+        expect.soft(this.newFramePopupLocators.newFramesetTabTopFrameParagraph(page)).toHaveCSS('color', expectedValues.newFramesetTopFrameParagraphColor);
+        expect.soft(this.newFramePopupLocators.newFramesetTabTopFrameBody(page)).toHaveCSS('background-color', expectedValues.newFramesetTopFrameBodyColor);
 
-        const contentFrameHeading = await this.newFramePopupPage.newFramesetTabContentFrameHeading(page).innerText();
-        const contentFrameParagraph = await this.newFramePopupPage.newFramesetTabContentFrameParagraph(page).innerText();
-        expect(contentFrameHeading).toEqual(expectedValues.newFramesetContentFrameHeadingText);
-        expect(contentFrameParagraph).toEqual(expectedValues.newFramesetContentFrameParagraphText);
+        const contentFrameHeading = await this.newFramePopupLocators.newFramesetTabContentFrameHeading(page).innerText();
+        const contentFrameParagraph = await this.newFramePopupLocators.newFramesetTabContentFrameParagraph(page).innerText();
+        expect.soft(contentFrameHeading).toEqual(expectedValues.newFramesetContentFrameHeadingText);
+        expect.soft(contentFrameParagraph).toEqual(expectedValues.newFramesetContentFrameParagraphText);
 
-        if (page.context().browser().browserType().name() === 'chromium'){
-            const headingCSS = await getElementCSS(this.newFramePopupPage.newFramesetTabContentFrameHeading(page));
-            expect(headingCSS.color).toEqual(expectedValues.newFramesetContentFrameHeadingColor);
-            expect(headingCSS.textShadow).toEqual(expectedValues.newFramesetContentFrameHeadingShadow);
+        if (context.browser().browserType().name() === 'chromium'){
+            const headingCSS = await getElementCSS(this.newFramePopupLocators.newFramesetTabContentFrameHeading(page));
+            expect.soft(headingCSS.color).toEqual(expectedValues.newFramesetContentFrameHeadingColor);
+            expect.soft(headingCSS.textShadow).toEqual(expectedValues.newFramesetContentFrameHeadingShadow);
 
-            const paragraphCSS = await getElementCSS(this.newFramePopupPage.newFramesetTabContentFrameParagraph(page));
-            expect(paragraphCSS.color).toEqual(expectedValues.newFramesetContentFrameParagraphColor);
+            const paragraphCSS = await getElementCSS(this.newFramePopupLocators.newFramesetTabContentFrameParagraph(page));
+            expect.soft(paragraphCSS.color).toEqual(expectedValues.newFramesetContentFrameParagraphColor);
 
-            const bodyCSS = await getElementCSS(this.newFramePopupPage.newFramesetTabContentFrameBody(page));
-            expect(bodyCSS.backgroundColor).toEqual(expectedValues.newFramesetContentFrameBodyColor);
+            const bodyCSS = await getElementCSS(this.newFramePopupLocators.newFramesetTabContentFrameBody(page));
+            expect.soft(bodyCSS.backgroundColor).toEqual(expectedValues.newFramesetContentFrameBodyColor);
         }
     }
 }
