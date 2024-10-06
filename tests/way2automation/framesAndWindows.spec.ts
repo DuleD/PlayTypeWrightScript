@@ -19,33 +19,33 @@ test.describe('Window and Frame testing on Way2automation', () => {
 
     test('Open new browser tab through an iframe', { tag: '@NewBrowserTab'}, async ({ context }) => {
         const hyperlink = framesAndWindowsLocators.newWindowFrameTextLink();
-        expect(await hyperlink.innerText()).toEqual(expectedValues.newWindowExpectedText);
+        expect(await hyperlink.innerText()).toEqual(expectedValues.newWindowText);
 
         await hyperlink.click();
         await context.waitForEvent('page');
 
         const newPage = await framesAndWindowsActions.evaluateNewTab(context);
         const newPageHyperlinkText = await framesAndWindowsLocators.newPageHyperlink(newPage).innerText();
-        expect(newPageHyperlinkText).toEqual(expectedValues.newWindowExpectedText);
+        expect(newPageHyperlinkText).toEqual(expectedValues.newWindowText);
     });
 
     test('Open new separate window through an iframe', { tag: '@OpenNewSeparateWindow'}, async ({ context }) => {
         await framesAndWindowsLocators.separateNewWindowResponsiveTab().click();
         const hyperlink = framesAndWindowsLocators.separateNewWindowFrameTextLink();
-        expect(await hyperlink.innerText()).toEqual(expectedValues.separateNewWindowExpectedText);
+        expect(await hyperlink.innerText()).toEqual(expectedValues.separateNewWindowText);
 
         await hyperlink.click();
         await waitForNumber(() => context.pages().length, 2)
 
         const newPage = await framesAndWindowsActions.evaluateNewWindow(context);
         const newPageHyperlinkText = await framesAndWindowsLocators.newPageHyperlink(newPage).innerText();
-        expect(newPageHyperlinkText).toEqual(expectedValues.separateNewWindowExpectedText);
+        expect(newPageHyperlinkText).toEqual(expectedValues.separateNewWindowText);
     });
 
     test('Open multiple windows through an iframe', { tag: '@OpenMultipleWindows'}, async ({ context }) => {
         await framesAndWindowsLocators.multipleWindowsResponsiveTab().click();
         const hyperlink = framesAndWindowsLocators.multipleWindowsFrameTextLink();
-        expect(await hyperlink.innerText()).toEqual(expectedValues.multipleWindowsExpectedFrameText);
+        expect(await hyperlink.innerText()).toEqual(expectedValues.multipleWindowsFrameText);
 
         await hyperlink.click();
         await waitForNumber(() => context.pages().length, 4)
@@ -53,34 +53,41 @@ test.describe('Window and Frame testing on Way2automation', () => {
         await framesAndWindowsActions.evaluateMultipleNewWindows(context);
     });
 
-    test('Open new frameset tab through an iframe', { tag: '@OpenFramesetWindow'}, async ({ page, context }) => {
-        await page.locator('.responsive-tabs').getByText("Frameset").click();
-        await page.frameLocator('#example-1-tab-3 iframe').getByText('Open Frameset Window').click();
+    test('Open new frameset tab through an iframe', { tag: '@OpenFramesetWindow'}, async ({ context }) => {
+        await framesAndWindowsLocators.framesetWindowResponsiveTab().click();
+        const hyperlink = framesAndWindowsLocators.framesetWindowFrameTextLink();
+        expect(await hyperlink.innerText()).toEqual(expectedValues.framesetWindowText);
+
+        await hyperlink.click();
         await context.waitForEvent('page');
 
-        const allPages = context.pages();
-        expect(allPages.length).toEqual(2);
+        const newPage = await framesAndWindowsActions.evaluateNewTab(context);
 
-        const newPage = allPages[allPages.length - 1];
-        await newPage.waitForLoadState();
+        const topFrameHeading = await framesAndWindowsLocators.newFramesetTabTopFrameHeading(newPage).innerText();
+        const topFrameParagraph = await framesAndWindowsLocators.newFramesetTabContentFrameParagraph(newPage).innerText();
+        expect(topFrameHeading).toEqual(expectedValues.newFramesetTabHeadingText);
+        expect(topFrameParagraph).toEqual(expectedValues.newFramesetTabParagraphText);
+        expect(framesAndWindowsLocators.newFramesetTabTopFrameHeading(newPage)).toHaveCSS('color', 'rgb(255, 255, 255)');
+        expect(framesAndWindowsLocators.newFramesetTabTopFrameHeading(newPage)).toHaveCSS('text-shadow', 'rgb(255, 255, 255) 0px 0px 5px');
+        expect(framesAndWindowsLocators.newFramesetTabContentFrameParagraph(newPage)).toHaveCSS('color', 'rgb(255, 255, 255)');
+        expect(framesAndWindowsLocators.newFramesetTabTopFrameBody(newPage)).toHaveCSS('background-color', 'rgb(151, 163, 193)');
 
-        const initialPageInternalDimension = await page.evaluate(() => [window.innerWidth, window.innerHeight]);
-        const newPageInternalDimension = await newPage.evaluate(() => [window.innerWidth, window.innerHeight]);
-        expect(initialPageInternalDimension).toEqual(newPageInternalDimension);
+        const contentFrameHeading = await framesAndWindowsLocators.newFramesetTabContentFrameHeading(newPage).innerText();
+        const contentFrameParagraph = await framesAndWindowsLocators.newFramesetTabContentFrameParagraph(newPage).innerText();
+        expect(contentFrameHeading).toEqual(expectedValues.newFramesetTabHeadingText);
+        expect(contentFrameParagraph).toEqual(expectedValues.newFramesetTabParagraphText);
 
-        const topFrameHeading = await newPage.frameLocator('frame[name="topFrame"]').getByRole('heading').innerText();
-        const topFrameText = await newPage.frameLocator('frame[name="topFrame"]').getByRole('paragraph').innerText();
-        expect(topFrameHeading).toEqual('www.way2automation.com');
-        expect(topFrameText).toEqual('Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text.');
-        expect(newPage.frameLocator('frame[name="topFrame"]').getByText(topFrameHeading)).toHaveCSS('color', 'rgb(255, 255, 255)');
-        expect(newPage.frameLocator('frame[name="topFrame"]').getByText(topFrameHeading)).toHaveCSS('text-shadow', 'rgb(255, 255, 255) 0px 0px 5px');
-        expect(newPage.frameLocator('frame[name="topFrame"]').getByText(topFrameText)).toHaveCSS('color', 'rgb(255, 255, 255)');
-        expect(newPage.frameLocator('frame[name="topFrame"]').locator('body')).toHaveCSS('background-color', 'rgb(151, 163, 193)');
+        if (context.browser().browserType().name() === 'chromium'){
+            const headingCSS = await getElementCSS(framesAndWindowsLocators.newFramesetTabContentFrameHeading(newPage));
+            expect(headingCSS.color).toEqual('rgb(255, 255, 255)');
+            expect(headingCSS.textShadow).toEqual('rgb(255, 255, 255) 0px 0px 5px');
 
-        const contentFrameHeading = await newPage.frameLocator('frame[name="contentFrame"]').getByRole('heading').innerText();
-        const contentFrameText = await newPage.frameLocator('frame[name="contentFrame"]').getByRole('paragraph').innerText();
-        expect(contentFrameHeading).toEqual('www.way2automation.com');
-        expect(contentFrameText).toEqual('Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text. Demo text.');
+            const paragraphCSS = await getElementCSS(framesAndWindowsLocators.newFramesetTabContentFrameParagraph(newPage));
+            expect(paragraphCSS.color).toEqual('rgb(255, 255, 255)');
+
+            const bodyCSS = await getElementCSS(framesAndWindowsLocators.newFramesetTabContentFrameBody(newPage));
+            expect(bodyCSS.backgroundColor).toEqual('rgb(102, 153, 102)')
+        }
 
         // const result: { [selector: string]: { [property: string]: string } } = {};
         // const cssString = await newPage.frameLocator('frame[name="contentFrame"]').locator('html head style').innerText();
@@ -99,18 +106,6 @@ test.describe('Window and Frame testing on Way2automation', () => {
         //     result[selector] = styles;
         // });
         // expect(result.body.background).toEqual('#696');
-
-        if (context.browser().browserType().name() === 'chromium'){
-            const headingCSS = await getElementCSS(newPage.frameLocator('frame[name="contentFrame"]').getByText(contentFrameHeading));
-            expect(headingCSS.color).toEqual('rgb(255, 255, 255)');
-            expect(headingCSS.textShadow).toEqual('rgb(255, 255, 255) 0px 0px 5px');
-
-            const paragraphCSS = await getElementCSS(newPage.frameLocator('frame[name="contentFrame"]').getByText(contentFrameText));
-            expect(paragraphCSS.color).toEqual('rgb(255, 255, 255)');
-
-            const bodyCSS = await getElementCSS(newPage.frameLocator('frame[name="contentFrame"]').locator('body'));
-            expect(bodyCSS.backgroundColor).toEqual('rgb(102, 153, 102)')
-        }
     });
 });
 

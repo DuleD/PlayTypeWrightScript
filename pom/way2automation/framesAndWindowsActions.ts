@@ -41,7 +41,7 @@ export class FramesAndWindowsActions{
         for (const page of allPages){
             await page.waitForLoadState();
             const textContent = await this.framesAndWindowsPage.newPageHyperlink(page).innerText();
-            const containsValue = expectedValues.multipleWindowsExpectedValues.some(value => textContent.includes(value));
+            const containsValue = expectedValues.multipleWindowsValues.some(value => textContent.includes(value));
             expect(containsValue).toBeTruthy();
         }
     }
