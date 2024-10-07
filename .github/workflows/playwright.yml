@@ -2,8 +2,8 @@ name: Playwright Tests
 on:
   workflow_dispatch:
     inputs:
-      newBrowserTabTest:
-        description: 'New Browser Tab Test'
+      openNewBrowserTab:
+        description: 'Open New Browser Tab Test'
         required: false
         type: boolean
         default: false
@@ -14,14 +14,14 @@ on:
         type: boolean
         default: false
 
-      openFramesetWindow:
-        description: 'Open Frameset Window Test'
+      openNewFramesetTab:
+        description: 'Open New Frameset Tab Test'
         required: false
         type: boolean
         default: false
 
-      openMultipleWindows:
-        description: 'Open Multiple Windows Test'
+      openMultipleNewWindows:
+        description: 'Open Multiple New Windows Test'
         required: false
         type: boolean
         default: false
@@ -50,17 +50,17 @@ jobs:
     - name: Determine tags to run
       run: |
         TAGS=""
-        if [ "${{ inputs.newBrowserTabTest }}" = "true" ]; then
-          TAGS="${TAGS}@NewBrowserTab|"
+        if [ "${{ inputs.openNewBrowserTab }}" = "true" ]; then
+          TAGS="${TAGS}@OpenNewBrowserTab|"
         fi
         if [ "${{ inputs.openNewSeparateWindow }}" = "true" ]; then
           TAGS="${TAGS}@OpenNewSeparateWindow|"
         fi
-        if [ "${{ inputs.openFramesetWindow }}" = "true" ]; then
-          TAGS="${TAGS}@OpenFramesetWindow|"
+        if [ "${{ inputs.openNewFramesetTab }}" = "true" ]; then
+          TAGS="${TAGS}@OpenNewFramesetTab|"
         fi
-        if [ "${{ inputs.openMultipleWindows }}" = "true" ]; then
-          TAGS="${TAGS}@OpenMultipleWindows|"
+        if [ "${{ inputs.openMultipleNewWindows }}" = "true" ]; then
+          TAGS="${TAGS}@OpenMultipleNewWindows|"
         fi
         if [ -n "$TAGS" ]; then
           TAGS="${TAGS::-1}"

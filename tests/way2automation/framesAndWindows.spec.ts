@@ -16,7 +16,7 @@ test.describe('Window and Frame testing on Way2automation', () => {
         await context.close();
     });
 
-    test('Open new browser tab through an iframe', { tag: '@NewBrowserTab'}, async ({ context }) => {
+    test('Open new browser tab through an iframe', { tag: '@OpenNewBrowserTab'}, async ({ context }) => {
         await framesAndWindowsPageActions.openNewBrowserTab();
         await newPopupPageActions.evaluateNewTab(context);
     });
@@ -26,12 +26,12 @@ test.describe('Window and Frame testing on Way2automation', () => {
         await newPopupPageActions.evaluateNewSeparateWindow(context);
     });
 
-    test('Open multiple windows through an iframe', { tag: '@OpenMultipleWindows'}, async ({ context }) => {
+    test('Open multiple new windows through an iframe', { tag: '@OpenMultipleNewWindows'}, async ({ context }) => {
         await framesAndWindowsPageActions.openNewMultipleWindows();
         await newPopupPageActions.evaluateNewMultipleWindows(context);
     });
 
-    test('Open new frameset tab through an iframe', { tag: '@OpenFramesetWindow'}, async ({ context }) => {
+    test('Open new frameset tab through an iframe', { tag: '@OpenNewFramesetTab'}, async ({ context }) => {
         await framesAndWindowsPageActions.openNewFramesetWindow();
         await newPopupPageActions.evaluateNewFramesetWindow(context);
     });
