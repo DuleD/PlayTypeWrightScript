@@ -2,29 +2,25 @@ name: Playwright Tests
 on:
   workflow_dispatch:
     inputs:
-      openNewBrowserTab:
-        description: 'Open New Browser Tab Test'
+      IFramesTabsAndWindowsTests:
+        description: 'IFrames and Tabs/Windows tests on Way2Automation'
         required: false
         type: boolean
         default: false
 
-      openNewSeparateWindow:
-        description: 'Open New Separate Window Test'
+      EnvironmentVariableTests:
+        description: 'Test showcasing usage of Environment Variables. If selected, pick Environment Variables below'
         required: false
         type: boolean
         default: false
 
-      openNewFramesetTab:
-        description: 'Open New Frameset Tab Test'
+      EnvironmentVariables:
+        description: 'Environment Variables for EnvironmentVariableTests'
         required: false
-        type: boolean
-        default: false
-
-      openMultipleNewWindows:
-        description: 'Open Multiple New Windows Test'
-        required: false
-        type: boolean
-        default: false
+        type: choice
+        options:
+          - ExpandTesting.com
+          - PracticeTestAutomation.com
 
   push:
     branches: [ main, master ]
@@ -47,29 +43,33 @@ jobs:
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
 
-    - name: Determine tags to run
+    - name: Determine test tags to run
       run: |
         TAGS=""
-        if [ "${{ inputs.openNewBrowserTab }}" = "true" ]; then
-          TAGS="${TAGS}@OpenNewBrowserTab|"
+        if [ "${{ inputs.IFramesTabsAndWindowsTests }}" = "true" ]; then
+          TAGS="${TAGS}@Way2AutomationFrameTests|"
         fi
-        if [ "${{ inputs.openNewSeparateWindow }}" = "true" ]; then
-          TAGS="${TAGS}@OpenNewSeparateWindow|"
-        fi
-        if [ "${{ inputs.openNewFramesetTab }}" = "true" ]; then
-          TAGS="${TAGS}@OpenNewFramesetTab|"
-        fi
-        if [ "${{ inputs.openMultipleNewWindows }}" = "true" ]; then
-          TAGS="${TAGS}@OpenMultipleNewWindows|"
+        if [ "${{ inputs.EnvironmentVariableTests }}" = "true" ]; then
+          TAGS="${TAGS}@EnvVariableTest|"
         fi
         if [ -n "$TAGS" ]; then
           TAGS="${TAGS::-1}"
         fi
         echo "TEST_TAGS=$TAGS" >> $GITHUB_ENV
 
-    - name: Log the inputs
+    - name: Set environment variables for environment variable tests
+      if: ${{ inputs.EnvironmentVariables != '' }}
       run: |
-        echo "TAGS: ${{ env.TEST_TAGS }}"
+        if [ "${{ inputs.EnvironmentVariables == 'ExpandTesting.com' }}" ]; then
+          echo "TEST_USERNAME=${{ secrets.EXPANDTESTING_USERNAME }}" >> $GITHUB_ENV
+          echo "TEST_PASSWORD=${{ secrets.EXPANDTESTING_PASSWORD }}" >> $GITHUB_ENV
+          echo "TEST_URL=${{ vars.EXPANDTESTING_URL }}" >> $GITHUB_ENV
+        fi
+        if [ "${{ inputs.EnvironmentVariables == 'PracticeTestAutomation.com' }}" ]; then
+          echo "TEST_USERNAME=${{ secrets.PRACTICETESTAUTOMATION_USERNAME }}" >> $GITHUB_ENV
+          echo "TEST_PASSWORD=${{ secrets.PRACTICETESTAUTOMATION_PASSWORD }}" >> $GITHUB_ENV
+          echo "TEST_URL=${{ vars.PRACTICETESTAUTOMATION_URL }}" >> $GITHUB_ENV
+        fi
 
     - name: Run Playwright tests
       run: |
