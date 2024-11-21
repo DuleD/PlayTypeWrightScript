@@ -8,7 +8,6 @@ test('Log In', { tag: '@EnvVariableTest' }, async ({ page }) => {
     await page.getByRole('textbox', { name: 'username'}).fill(process.env.TEST_USERNAME);
     await page.getByRole('textbox', { name: 'password'}).fill(process.env.TEST_PASSWORD);
     await page.getByRole('button', { name: /Submit|Login/ }).click();
-    await page.waitForEvent('framenavigated');
 
     //The URL will change only if the login is successful
     expect(page.url()).not.toEqual(process.env.TEST_URL);

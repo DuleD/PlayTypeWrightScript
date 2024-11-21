@@ -21,7 +21,6 @@ on:
         options:
           - ExpandTesting.com
           - PracticeTestAutomation.com
-        default: ExpandTesting.com
 
   push:
     branches: [ main, master ]
@@ -59,9 +58,8 @@ jobs:
         echo "TEST_TAGS=$TAGS" >> $GITHUB_ENV
 
     - name: Set environment variables for environment variable tests
-      if: ${{ inputs.EnvironmentVariables != '' }}
       run: |
-        if [ "${{ inputs.EnvironmentVariables == 'ExpandTesting.com' }}" ]; then
+        if [ "${{ github.event_name != 'workflow_dispatch' }}" ] || [ "${{ inputs.EnvironmentVariables == 'ExpandTesting.com' }}" ]; then
           echo "TEST_USERNAME=${{ secrets.EXPANDTESTING_USERNAME }}" >> $GITHUB_ENV
           echo "TEST_PASSWORD=${{ secrets.EXPANDTESTING_PASSWORD }}" >> $GITHUB_ENV
           echo "TEST_URL=${{ vars.EXPANDTESTING_URL }}" >> $GITHUB_ENV
