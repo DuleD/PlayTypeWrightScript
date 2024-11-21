@@ -21,6 +21,7 @@ on:
         options:
           - ExpandTesting.com
           - PracticeTestAutomation.com
+        default: ExpandTesting.com
 
   push:
     branches: [ main, master ]
